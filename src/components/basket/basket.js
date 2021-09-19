@@ -1,60 +1,61 @@
-import React, { useMemo } from 'react'
-import { connect, useSelector } from 'react-redux';
-import Button from '../button/button';
-import styles from '../product/product.module.css';
+import React from 'react'
+import { connect } from 'react-redux';
 import basketStyles from './basket.module.css';
-import { decrement, increment, remove } from '../../redux/actions';
+import BasketItem from './basketItem';
 
-const Basket = () => {
+const Basket = ({ title = 'Корзина', total, orderProducts }) => {
 
-  const value = useSelector(state => state.order)
-
-  const show = () => {
-    Object.entries(value).map((element) => (
-      console.log(element)
-    ))
+  if (!total) {
+    return (
+      <div>
+        <h4>Добавьте товар в корзину</h4>
+      </div>
+    );
   }
-
-  const total = useMemo(() => {
-    return Object.entries(value).reduce((sum, item) => {
-      return sum + item[1] * item[1];
-    }, 0);
-  }, [value]);
 
   return (
     <div className={basketStyles.basket}>
-      <button onClick={show}>Click</button>
-
-      {Object.entries(value).map((element) => (
-        <div>
-          <span>{element}</span>
-          <div className={styles.buttons}>
-            <Button
-              onClick={decrement}
-              icon="minus"
-              data-id="product-decrement"
-            />
-            <Button
-              onClick={increment}
-              icon="plus"
-              data-id="product-increment"
-            />
-            <Button
-              onClick={remove}
-              icon="plus"
-            />
-          </div>
-        </div>
+      <h4>{ title }</h4>
+      {orderProducts.map(({product, amount, subtotal}) => (
+        <BasketItem 
+          product={product}
+          amount={amount}
+          key={product.id}
+          subtotal={subtotal}
+        />
       ))}
-      {total}
+      <hr styles={{margin: 10}}/>
+      <div>
+        <p>Total</p>
+      </div>
+      <div>
+        {`${total} $`}
+      </div>
+      <button>
+        Заказать
+      </button>
     </div>
   )
 }
 
-const mapDispatchToProps = (dispatch, props) => ({
-  increment: () => dispatch(increment(props.product.id)),
-  decrement: () => dispatch(decrement(props.product.id)),
-  remove: () => dispatch(remove(props.product.id)),
-});
-
-export default connect(null, mapDispatchToProps)(Basket);
+//Получаем "Стейт" с ресторанами для отображения в корзине
+export default connect((state) => {
+  //Выбираем все продукты из ресторанов
+  const products = state.restaurants.flatMap((restaurant) => restaurant.menu);
+  //Из ордера получаем все ключи продуктов
+  const orderProducts = Object.keys(state.order)
+  //Набираем все необходимые данные и добавить их в отдельный массив OrderProducts
+    .filter((productId) => state.order[productId] > 0)
+    .map((productId) => products.find((product) => product.id === productId))
+    .map((product) => ({
+      product,
+      amount: state.order[product.id],
+      subtotal: state.order[product.id] * product.price,
+    }));
+  //Считаются все суммы по заказанным позициям
+  const total = orderProducts.reduce((acc, { subtotal }) => acc + subtotal, 0);
+  return {
+    total,
+    orderProducts,
+  };
+})(Basket);

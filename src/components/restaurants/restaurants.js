@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import Restaurant from '../restaurant';
 import Tabs from '../tabs';
@@ -33,4 +34,12 @@ Restaurants.propTypes = {
   ).isRequired,
 };
 
-export default Restaurants;
+
+//Получаем рестораны из пропов редакса
+//Тем самым у нас рестораны уже приходят не из "фикстур"
+//А из редакса, что очищает наш код и выносит логику в редакс
+const mapStateToProps = (state) => ({
+  restaurants: state.restaurants,
+});
+
+export default connect(mapStateToProps)(Restaurants);

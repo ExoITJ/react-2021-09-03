@@ -9,8 +9,8 @@ export default class App extends PureComponent {
     return (
       <div>
         <Header />
-        <Basket restaurants={this.props.restaurants}/>
-        <Restaurants restaurants={this.props.restaurants} />
+        <Basket />
+        <Restaurants />
       </div>
     );
   }
